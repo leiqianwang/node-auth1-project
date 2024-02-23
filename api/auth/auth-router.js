@@ -60,22 +60,16 @@ const{checkUsernameFree, checkUsernameExists, checkPasswordLength} = require('./
   }
  */
       router.post('/login', checkUsernameExists, (req, res, next) => {
-           let { username, password} = req.body
-
-           Users.findBy({username})
-           .first()
-           .then(user => {
-               if(user && bcrypt.compareSync(password, user.password)) { //critical line: session saved, cookie set on client:
-               req.session.user = user;
-               res.status(200).json({
-                message:  `Welcome back ${user.username}!`,
-               })
-              } else{
-                res.status(401).json({  message: 'Invalid credentials'});
-              }
-           })
-           .catch(next);
-      } )
+        let { password } = req.body;
+        if (bcrypt.compareSync(password, req.user.password)) {
+            req.session.user = req.user;
+            res.status(200).json({
+                message: `Welcome ${req.user.username}!`,
+            });
+        } else {
+            res.status(401).json({ message: 'Invalid credentials' });
+        }
+    });
 
 
 /**
@@ -95,20 +89,18 @@ const{checkUsernameFree, checkUsernameExists, checkPasswordLength} = require('./
  */
 
   router.get('/logout', (req, res) => {
-    if (req.session) {
+    if (req.session.user) {
       req.session.destroy(err => {
         if (err) {
-          res.status(400).json({ message: "You can't log out" });
+          next(err)
         } else {
-          res.status(200).json({ message: "logged out" });
+          res.json({ message: 'logged out'})
         }
-      });
-    } else {
-      res.status(200).json({ message: "no session" });
+      })
+    }else {
+      res.json({ message: 'no session'})
     }
-  });
-         
-
+  })
  
 // Don't forget to add the router to the `exports` object so it can be required in other modules
 module.exports = router
