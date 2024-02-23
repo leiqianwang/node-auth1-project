@@ -29,7 +29,7 @@ const{checkUsernameFree, checkUsernameExists, checkPasswordLength} = require('./
     "message": "Password must be longer than 3 chars"
   }
  */
-   router.post('/register', checkUsernameFree, checkUsernameExists, async (req, res, next) => {
+   router.post('/register', checkUsernameFree, checkPasswordLength, async (req, res, next) => {
         try {
     
           let user = req.body;
@@ -38,7 +38,7 @@ const{checkUsernameFree, checkUsernameExists, checkPasswordLength} = require('./
 
 
          const savedUser = await Users.add(user);
-           resstatus(201).json(savedUser);
+           res.status(201).json(savedUser);
           }  catch(error)   {
             next(error);   //middleware error handling 
            }

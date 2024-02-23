@@ -1,8 +1,4 @@
-const express = require("express");
-const helmet = require("helmet");
-const cors = require("cors");
-const session = require('express-session');
-const knexSessionStore = require('connect-session-knex')(session);
+
 
 /**
   Do what needs to be done to support sessions with the `express-session` package!
@@ -17,46 +13,58 @@ const knexSessionStore = require('connect-session-knex')(session);
   or you can use a session store like `connect-session-knex`.
  */
 
-  const authRouter = require('./auth/auth-router');
-  const usersRouter = require('./users/users-router');
 
+// Import dependencies
+const express = require("express");
+const helmet = require("helmet");
+const cors = require("cors");
+const session = require('express-session');
+const store = require('connect-session-knex')(session);
+const knex = require('../data/db-config')
+
+// Import routers
+const authRouter = require('./auth/auth-router');
+const usersRouter = require('./users/users-router');
+
+// Initialize server
 const server = express();
 
+// Configure session
 const sessionConfig = {
-     name: 'chocolatechip',
-     secret: 'keep it secret, keep it safe!',
-     cookie: {
-        maxAge: 1000 * 60 * 60,
-        secure: false, // if true the cookie is not set unless it's an https connection
-        httpOnly: false, // if true the cookie is not accessible through 
-     },
-     rolling: true,
-     resave: false,
-     saveUninitialized: false, //achived setting within privacy implications, if false, no cookie is set on client unless req.session changed
-     store: new knexSessionStore({
-         knex: require('../data/db-config.js'), //configured instance of knex
-         tablename: 'sessions',   //table that will store sessions inside the db
-         sidfieldname: 'sid', //column that will hold the session id, name anything 
-         createtable: true, // if table does not exist, it'll create it automatically
-         clearInterval: 1000 * 60 * 60,
-
-     }),
+  name: 'chocolatechip',
+  secret: 'shh',
+  saveUninitialized: false,
+  resave: false,
+  store: new store({
+    knex,
+    createTable: true,
+    clearInterval: 1000 * 60 * 10,
+    tablename: 'sessions',
+    sidfieldname: 'sid',
+  }),
+  cookie: {
+    maxAge: 1000 * 60 * 10,
+    secure: false,
+    httpOnly: true,
+  }
 }
 
-//server.use(express.static(path.join(_dirname, '../client')))
-server.use(helmet());
-server.use(express.json());
-server.use(session(sessionConfig));
-server.use(cors());
+// Apply middlewares
+server.use(helmet());  // Security middleware
+server.use(express.json());  // Parse JSON bodies
+server.use(cors());  // Enable Cross-Origin Resource Sharing
+server.use(session(sessionConfig));  // Session management
 
+// Apply routers
 server.use('/api/auth', authRouter);
 server.use('/api/users', usersRouter);
 
-
+// Default route
 server.get("/", (req, res) => {
   res.json({ api: "up" });
 });
 
+// Error handling middleware
 server.use((err, req, res, next) => { // eslint-disable-line
   res.status(err.status || 500).json({
     message: err.message,
