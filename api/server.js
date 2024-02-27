@@ -20,7 +20,8 @@ const helmet = require("helmet");
 const cors = require("cors");
 const session = require('express-session');
 const store = require('connect-session-knex')(session);
-const knex = require('../data/db-config')
+const knex = require('../data/db-config');
+//const knexConfig = require('../knexfile').development;
 
 // Import routers
 const authRouter = require('./auth/auth-router');
@@ -28,6 +29,8 @@ const usersRouter = require('./users/users-router');
 
 // Initialize server
 const server = express();
+// Environment-sensitive settings
+const isProduction = process.env.NODE_ENV === 'production';
 
 // Configure session
 const sessionConfig = {
@@ -44,7 +47,7 @@ const sessionConfig = {
   }),
   cookie: {
     maxAge: 1000 * 60 * 10,
-    secure: false,
+    secure: isProduction,
     httpOnly: true,
   }
 }

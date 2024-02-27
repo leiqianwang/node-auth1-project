@@ -28,18 +28,18 @@ const { restricted } = require('../auth/auth-middleware.js')
   }
  */
    router.get('/', restricted, async (req, res, next) => {
-    try {
-      const users = await Users.find()
-      res.json(users)
-    }catch (error) {
-      next(error)
-    }
-  //      Users.find()
-  //         .then(user => {
-  //             res.json(user)
-  //         })
-  //         .catch(next)   //the custom err handling middleware will trap this
-  //  })
+    // try {
+    //   const users = await Users.find()
+    //   res.json(users)
+    // }catch (error) {
+    //   next(error)
+    // }
+       Users.find()
+          .then(user => {
+              res.json(user)
+          })
+          .catch(next)   //the custom err handling middleware will trap this
    })
+   
 // Don't forget to add the router to the `exports` object so it can be required in other modules
 module.exports = router
